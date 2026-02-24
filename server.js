@@ -9,7 +9,7 @@ const io = new Server(server);
 
 app.use(express.json()); 
 
-const CHAVE_SECRETA = "Ventura_Logs_Secreto_2026"; 
+const CHAVE_SECRETA = "cadaallan"; 
 
 // Adicionado o 'novo_log_deploy'
 const historico = {
@@ -56,4 +56,5 @@ io.on('connection', (socket) => {
 });
 
 const PORTA = process.env.PORT || 3000;
+
 server.listen(PORTA, () => console.log(`🚀 Nuvem online na porta ${PORTA}`));
