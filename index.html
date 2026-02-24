@@ -3,23 +3,35 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Centro de Comando - Tempo Real</title>
+<title>Centro de Comando - Login</title>
 <style>
   * { box-sizing: border-box; }
   body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; }
   
+  /* --- TELA DE LOGIN --- */
+  #tela-login { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+  .login-box { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+  .login-box h2 { color: #58a6ff; margin-top: 0; margin-bottom: 20px; }
+  .input-group { margin-bottom: 15px; text-align: left; }
+  .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #8b949e; }
+  .input-group input[type="text"], .input-group input[type="password"] { width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; font-family: inherit; }
+  .input-group input:focus { border-color: #58a6ff; outline: none; }
+  .lembrar-mim { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #8b949e; margin-bottom: 20px; justify-content: flex-start; }
+  .btn-entrar { background-color: #238636; color: white; border: none; padding: 10px; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+  .btn-entrar:hover { background-color: #2ea043; }
+  #msg-erro { color: #f85149; font-size: 0.85rem; margin-top: 10px; display: none; }
+
+  /* --- TELA DO DASHBOARD (Oculta por padrão) --- */
+  #tela-dashboard { display: none; flex-direction: column; flex: 1; }
   .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
   h1 { color: #58a6ff; margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
-  
-  /* Botão de Reinício */
   .btn-reiniciar { background-color: #238636; color: #ffffff; border: 1px solid rgba(240, 246, 252, 0.1); padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
   .btn-reiniciar:hover { background-color: #2ea043; }
   .btn-reiniciar:active { transform: scale(0.95); }
+  .btn-sair { background-color: transparent; color: #f85149; border: 1px solid #f85149; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; }
 
-  /* Grid 2x2 para os terminais */
   .container { display: flex; flex-wrap: wrap; gap: 20px; flex: 1; }
   .terminal { flex: 1 1 calc(50% - 20px); background-color: #010409; border: 1px solid #30363d; border-radius: 6px; display: flex; flex-direction: column; min-height: 300px; max-height: 45vh; }
-  
   .terminal-header { background-color: #161b22; padding: 10px; text-align: center; font-weight: bold; border-bottom: 1px solid #30363d; color: #8b949e; font-size: 0.9rem; }
   .terminal-body { flex: 1; padding: 10px; overflow-y: auto; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
   
@@ -29,7 +41,6 @@
   .tag-data { color: #8b949e; }
   .tag-alerta { color: #d29922; font-weight: bold; }
 
-  /* Scrollbar customizada */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background-color: #6e7681; border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
@@ -39,24 +50,90 @@
 </style>
 </head>
 <body>
-  <div class="header-container">
-      <h1>🌐 Centro de Comando</h1>
-      <button class="btn-reiniciar" onclick="enviarComandoReiniciar()">
-          🚀 REINICIAR DEPLOY
-      </button>
+
+  <div id="tela-login">
+      <div class="login-box">
+          <h2>🔐 Acesso Restrito</h2>
+          <div class="input-group">
+              <label>Usuário</label>
+              <input type="text" id="usuario" placeholder="Digite o usuário">
+          </div>
+          <div class="input-group">
+              <label>Senha</label>
+              <input type="password" id="senha" placeholder="Digite a senha">
+          </div>
+          <div class="lembrar-mim">
+              <input type="checkbox" id="lembrar" checked>
+              <label for="lembrar">Lembrar de mim</label>
+          </div>
+          <button class="btn-entrar" onclick="fazerLogin()">ENTRAR</button>
+          <div id="msg-erro">Usuário ou senha incorretos!</div>
+      </div>
   </div>
 
-  <div class="container">
-    <div class="terminal"><div class="terminal-header">🤖 Bot WhatsApp (Node)</div><div class="terminal-body" id="log-node"></div></div>
-    <div class="terminal"><div class="terminal-header">🐍 API Datasheet (Python)</div><div class="terminal-body" id="log-python"></div></div>
-    <div class="terminal"><div class="terminal-header">⚙️ HSE (.NET)</div><div class="terminal-body" id="log-hse"></div></div>
-    <div class="terminal"><div class="terminal-header">🚨 Deploy & Webhook</div><div class="terminal-body" id="log-deploy"></div></div>
+  <div id="tela-dashboard">
+      <div class="header-container">
+          <h1>🌐 Centro de Comando</h1>
+          <div style="display: flex; gap: 10px;">
+              <button class="btn-reiniciar" onclick="enviarComandoReiniciar()">🚀 REINICIAR DEPLOY</button>
+              <button class="btn-sair" onclick="fazerLogoff()">Sair</button>
+          </div>
+      </div>
+
+      <div class="container">
+        <div class="terminal"><div class="terminal-header">🤖 Bot WhatsApp (Node)</div><div class="terminal-body" id="log-node"></div></div>
+        <div class="terminal"><div class="terminal-header">🐍 API Datasheet (Python)</div><div class="terminal-body" id="log-python"></div></div>
+        <div class="terminal"><div class="terminal-header">⚙️ HSE (.NET)</div><div class="terminal-body" id="log-hse"></div></div>
+        <div class="terminal"><div class="terminal-header">🚨 Deploy & Webhook</div><div class="terminal-body" id="log-deploy"></div></div>
+      </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
       const socket = io();
+      const telaLogin = document.getElementById('tela-login');
+      const telaDashboard = document.getElementById('tela-dashboard');
+      const msgErro = document.getElementById('msg-erro');
 
+      // Tenta logar automaticamente se tiver token salvo
+      window.onload = () => {
+          const tokenSalvo = localStorage.getItem('ventura_token');
+          if (tokenSalvo) {
+              socket.emit('validar_token_solicitado', { token: tokenSalvo });
+          }
+      };
+
+      function fazerLogin() {
+          const u = document.getElementById('usuario').value;
+          const s = document.getElementById('senha').value;
+          msgErro.style.display = 'none';
+          socket.emit('login_solicitado', { usuario: u, senha: s });
+      }
+
+      function fazerLogoff() {
+          localStorage.removeItem('ventura_token');
+          location.reload(); // Recarrega a página para voltar pro login limpo
+      }
+
+      // RESPOSTAS DO SERVIDOR PARA LOGIN
+      socket.on('login_sucesso', (dados) => {
+          if (document.getElementById('lembrar').checked && dados.token) {
+              localStorage.setItem('ventura_token', dados.token);
+          }
+          telaLogin.style.display = 'none';
+          telaDashboard.style.display = 'flex';
+          document.title = "Painel - Online";
+      });
+
+      socket.on('login_erro', (dados) => {
+          msgErro.innerText = dados.mensagem || "Erro na autenticação";
+          msgErro.style.display = 'block';
+          localStorage.removeItem('ventura_token'); // Limpa token falso/vencido se houver
+          telaLogin.style.display = 'flex';
+          telaDashboard.style.display = 'none';
+      });
+
+      // RENDERIZAÇÃO DE LOGS (Inalterado)
       function adicionarLog(containerId, texto) {
           const container = document.getElementById(containerId);
           const divLinha = document.createElement('div');
@@ -78,12 +155,10 @@
       socket.on('novo_console-log', (linha) => adicionarLog('log-hse', linha));
       socket.on('novo_log_deploy', (linha) => adicionarLog('log-deploy', linha));
 
-      // Função acionada pelo Botão
       function enviarComandoReiniciar() {
-          const senha = prompt("Digite a senha de segurança para reiniciar os servidores:");
-          if(senha) {
-              socket.emit('solicitar_reiniciar', { chave: senha });
-              alert("Comando enviado! Acompanhe o log do Deploy.");
+          if(confirm("Tem certeza que deseja reiniciar todo o ambiente de produção?")) {
+              socket.emit('solicitar_reiniciar', { chave: 'Ventura_Logs_Secreto_2026' });
+              alert("Comando de reinício enviado!");
           }
       }
   </script>
