@@ -5,214 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Centro de Comando - Tempo Real</title>
 <style>
-  * {
-    box-sizing: border-box;
-}
+  * { box-sizing: border-box; }
+  body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; }
+  
+  .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  h1 { color: #58a6ff; margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
+  
+  /* Botão de Reinício */
+  .btn-reiniciar { background-color: #238636; color: #ffffff; border: 1px solid rgba(240, 246, 252, 0.1); padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
+  .btn-reiniciar:hover { background-color: #2ea043; }
+  .btn-reiniciar:active { transform: scale(0.95); }
 
-body {
-    background-color: #0d1117;
-    color: #c9d1d9;
-    font-family: 'Courier New', Courier, monospace;
-    margin: 0;
-    padding: 15px;
+  /* Grid 2x2 para os terminais */
+  .container { display: flex; flex-wrap: wrap; gap: 20px; flex: 1; }
+  .terminal { flex: 1 1 calc(50% - 20px); background-color: #010409; border: 1px solid #30363d; border-radius: 6px; display: flex; flex-direction: column; min-height: 300px; max-height: 45vh; }
+  
+  .terminal-header { background-color: #161b22; padding: 10px; text-align: center; font-weight: bold; border-bottom: 1px solid #30363d; color: #8b949e; font-size: 0.9rem; }
+  .terminal-body { flex: 1; padding: 10px; overflow-y: auto; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+  
+  .log-linha { margin-bottom: 4px; border-bottom: 1px dashed #30363d; padding-bottom: 4px; }
+  .tag-info { color: #3fb950; font-weight: bold; }
+  .tag-erro { color: #f85149; font-weight: bold; }
+  .tag-data { color: #8b949e; }
+  .tag-alerta { color: #d29922; font-weight: bold; }
 
-    display: flex;
-    flex-direction: column;
+  /* Scrollbar customizada */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background-color: #6e7681; border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background-color: #8b949e; }
 
-    min-height: 100vh; /* não usar height fixa */
-}
-
-/* ESSENCIAL PARA MOBILE */
-@viewport {
-    width: device-width;
-}
-
-h1 {
-    text-align: center;
-    color: #58a6ff;
-    margin: 0 0 20px 0;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-/* MOBILE FIRST */
-.container {
-    display: flex;
-    gap: 20px;
-    height: calc(100vh - 100px); /* ocupa a tela abaixo do título */
-}
-/* ===== SCROLL PERSONALIZADO ===== */
-
-/* Chrome, Edge, Brave */
-.terminal-body::-webkit-scrollbar {
-    width: 8px;
-}
-
-.terminal-body::-webkit-scrollbar-track {
-    background: transparent; /* fundo transparente */
-}
-
-.terminal-body::-webkit-scrollbar-thumb {
-    background-color: #6e7681; /* cinza visível */
-    border-radius: 10px;
-    border: 2px solid transparent; 
-    background-clip: content-box; /* deixa mais elegante */
-}
-
-.terminal-body::-webkit-scrollbar-thumb:hover {
-    background-color: #8b949e; /* cinza mais claro no hover */
-}
-
-
-/* TERMINAIS */
-.terminal {
-    flex: 1;
-    background-color: #010409;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    max-height: 500px;
-    display: flex;
-    flex-direction: column;
-
-    min-height: 0; /* MUITO IMPORTANTE para scroll funcionar em flex */
-}
-
-.terminal-header {
-    background-color: #161b22;
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
-    border-bottom: 1px solid #30363d;
-    color: #8b949e;
-    font-size: 0.9rem;
-}
-
-.terminal-body {
-    flex: 1;
-    padding: 10px;
-    scrollbar-width: thin;
-    scrollbar-color: #6e7681 transparent;
-
-    overflow-y: auto;   /* ativa scroll vertical */
-    overflow-x: hidden; /* evita scroll lateral */
-
-    font-size: 0.85rem;
-    line-height: 1.4;
-
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-}
-
-.terminal-body pre {
-    white-space: pre-wrap;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    margin: 0;
-}
-
-/* LOGS */
-.log-linha {
-    margin-bottom: 4px;
-    border-bottom: 1px dashed #30363d;
-    padding-bottom: 4px;
-}
-
-.tag-info { color: #3fb950; font-weight: bold; }
-.tag-erro { color: #f85149; font-weight: bold; }
-.tag-data { color: #8b949e; }
-
-/* DESKTOP */
-@media (max-width: 900px) {
-    .container {
-        flex-direction: column;
-        height: auto;
-    }
-
-    .terminal {
-        max-height: 300px;
-    }
-}
-@media (min-width: 900px) {
-    .container {
-        flex-direction: row; /* lado a lado apenas no desktop */
-    }
-
-    .terminal {
-        flex: 1;
-        max-height: none;
-    }
-
-    h1 {
-        font-size: 1.5rem;
-    }
-}
-
+  @media (max-width: 900px) { .terminal { flex: 1 1 100%; max-height: 350px; } .header-container { flex-direction: column; justify-content: center; text-align: center; } }
 </style>
 </head>
 <body>
-  <h1>🌐 Centro de Comando - Tempo Real</h1>
-
-  <div class="container">
-    <div class="terminal" aria-label="Bot WhatsApp (Node.js)">
-      <div class="terminal-header">🤖 Bot WhatsApp (Node.js)</div>
-      <div class="terminal-body" id="log-node">
-        <div class="log-linha"><span class="tag-data">2026-02-24 10:00</span> — <span class="tag-info">INFO</span> Bot iniciado</div>
-        <div class="log-linha"><span class="tag-data">2026-02-24 10:03</span> — <span class="tag-erro">ERRO</span> Falha no envio</div>
-      </div>
-    </div>
-
-    <div class="terminal" aria-label="API Datasheet (Python)">
-      <div class="terminal-header">🐍 API Datasheet (Python)</div>
-      <div class="terminal-body" id="log-python">
-        <div class="log-linha"><span class="tag-data">2026-02-24 10:05</span> — <span class="tag-info">INFO</span> Consulta /datasheet concluída</div>
-      </div>
-    </div>
-
-    <div class="terminal" aria-label="HSE (.NET)">
-      <div class="terminal-header">HSE (.NET)</div>
-      <div class="terminal-body" id="log-hse">
-        <div class="log-linha"><span class="tag-data">2026-02-24 10:06</span> — <span class="tag-info">INFO</span> Serviço HSE online</div>
-      </div>
-    </div>
+  <div class="header-container">
+      <h1>🌐 Centro de Comando</h1>
+      <button class="btn-reiniciar" onclick="enviarComandoReiniciar()">
+          🚀 REINICIAR DEPLOY
+      </button>
   </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
+  <div class="container">
+    <div class="terminal"><div class="terminal-header">🤖 Bot WhatsApp (Node)</div><div class="terminal-body" id="log-node"></div></div>
+    <div class="terminal"><div class="terminal-header">🐍 API Datasheet (Python)</div><div class="terminal-body" id="log-python"></div></div>
+    <div class="terminal"><div class="terminal-header">⚙️ HSE (.NET)</div><div class="terminal-body" id="log-hse"></div></div>
+    <div class="terminal"><div class="terminal-header">🚨 Deploy & Webhook</div><div class="terminal-body" id="log-deploy"></div></div>
+  </div>
 
-        // Função para colorir e injetar a linha no HTML
-        function adicionarLog(containerId, texto) {
-            const container = document.getElementById(containerId);
-            const divLinha = document.createElement('div');
-            divLinha.className = 'log-linha';
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+      const socket = io();
 
-            // Destaca visualmente a data e os erros/infos
-            let htmlTexto = texto
-                .replace(/\[(.*?)\]/, '<span class="tag-data">[$1]</span>')
-                .replace(/INFO:/, '<span class="tag-info">INFO:</span>')
-                .replace(/ERRO:/, '<span class="tag-erro">ERRO:</span>');
+      function adicionarLog(containerId, texto) {
+          const container = document.getElementById(containerId);
+          const divLinha = document.createElement('div');
+          divLinha.className = 'log-linha';
 
-            divLinha.innerHTML = htmlTexto;
-            container.appendChild(divLinha);
+          let htmlTexto = texto
+              .replace(/\[(.*?)\]/, '<span class="tag-data">[$1]</span>')
+              .replace(/INFO:/, '<span class="tag-info">INFO:</span>')
+              .replace(/ERRO:/, '<span class="tag-erro">ERRO:</span>')
+              .replace(/🚨|🚀|🧹/g, '<span class="tag-alerta">$&</span>'); 
 
-            // Rola a tela para o final automaticamente
-            container.scrollTop = container.scrollHeight;
-        }
+          divLinha.innerHTML = htmlTexto;
+          container.appendChild(divLinha);
+          container.scrollTop = container.scrollHeight;
+      }
 
-        // Fica escutando os eventos enviados pelo backend
-        socket.on('novo_log_node', (linha) => {
-            adicionarLog('log-node', linha);
-        });
+      socket.on('novo_log_node', (linha) => adicionarLog('log-node', linha));
+      socket.on('novo_log_python', (linha) => adicionarLog('log-python', linha));
+      socket.on('novo_console-log', (linha) => adicionarLog('log-hse', linha));
+      socket.on('novo_log_deploy', (linha) => adicionarLog('log-deploy', linha));
 
-        socket.on('novo_log_python', (linha) => {
-            adicionarLog('log-python', linha);
-        });
-
-        socket.on('novo_console-log', (linha) => {
-            adicionarLog('log-hse', linha);
-        });
-    </script>
+      // Função acionada pelo Botão
+      function enviarComandoReiniciar() {
+          const senha = prompt("Digite a senha de segurança para reiniciar os servidores:");
+          if(senha) {
+              socket.emit('solicitar_reiniciar', { chave: senha });
+              alert("Comando enviado! Acompanhe o log do Deploy.");
+          }
+      }
+  </script>
 </body>
 </html>
