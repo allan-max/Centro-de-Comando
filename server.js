@@ -90,10 +90,12 @@ io.on('connection', (socket) => {
         }
     });
 
-    // O Cliente Web mandou um comando (ex: "dir", "ping", "cd")
-    socket.on('comando_shell', (dados) => {
-        if (socket.rooms.has('logados')) {
-            io.emit('agente_comando_shell', { comando: dados.comando });
+    // Recebe o comando de texto do site e aperta "ENTER" no CMD do Windows
+    socket.on('agente_comando_shell', (dados) => {
+        console.log(`[TERMINAL REMOTO] Executando comando: ${dados.comando}`);
+        if (processoShell) {
+        // O segredo do Windows: ele exige \r\n para o ENTER!
+            processoShell.stdin.write(dados.comando + '\r\n');
         }
     });
 
