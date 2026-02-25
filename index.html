@@ -3,50 +3,60 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Centro de Comando - Login</title>
+<title>Centro de Comando</title>
 <style>
   * { box-sizing: border-box; }
-  body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; flex-direction: column; min-height: 100vh; }
+  body { background-color: #0d1117; color: #c9d1d9; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 0; display: flex; flex-direction: column; min-height: 100vh; }
   
   /* --- TELA DE LOGIN --- */
-  #tela-login { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+  #tela-login { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 15px; }
   .login-box { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
   .login-box h2 { color: #58a6ff; margin-top: 0; margin-bottom: 20px; }
   .input-group { margin-bottom: 15px; text-align: left; }
   .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #8b949e; }
-  .input-group input[type="text"], .input-group input[type="password"] { width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; font-family: inherit; }
-  .input-group input:focus { border-color: #58a6ff; outline: none; }
-  .lembrar-mim { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #8b949e; margin-bottom: 20px; justify-content: flex-start; }
-  .btn-entrar { background-color: #238636; color: white; border: none; padding: 10px; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+  .input-group input { width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; font-family: inherit; }
+  .btn-entrar { background-color: #238636; color: white; border: none; padding: 10px; width: 100%; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; }
   .btn-entrar:hover { background-color: #2ea043; }
   #msg-erro { color: #f85149; font-size: 0.85rem; margin-top: 10px; display: none; }
 
-  /* --- TELA DO DASHBOARD (Oculta por padrão) --- */
-  #tela-dashboard { display: none; flex-direction: column; flex: 1; }
-  .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-  h1 { color: #58a6ff; margin: 0; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
-  .btn-reiniciar { background-color: #238636; color: #ffffff; border: 1px solid rgba(240, 246, 252, 0.1); padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: inherit; }
-  .btn-reiniciar:hover { background-color: #2ea043; }
-  .btn-reiniciar:active { transform: scale(0.95); }
-  .btn-sair { background-color: transparent; color: #f85149; border: 1px solid #f85149; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; }
+  /* --- NAVBAR (MENU HAMBÚRGUER) --- */
+  #navbar { display: none; background-color: #161b22; border-bottom: 1px solid #30363d; padding: 10px 20px; align-items: center; justify-content: space-between; }
+  .nav-title { color: #58a6ff; font-weight: bold; font-size: 1.2rem; }
+  .hamburger { cursor: pointer; font-size: 1.5rem; background: none; border: none; color: #c9d1d9; }
+  .menu-links { display: none; gap: 15px; }
+  .menu-links.ativo { display: flex; }
+  .nav-btn { background: none; border: 1px solid #30363d; color: #c9d1d9; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: inherit; }
+  .nav-btn:hover { background-color: #30363d; }
+  .nav-btn.danger { color: #f85149; border-color: #f85149; }
+  .nav-btn.danger:hover { background-color: #f85149; color: white; }
 
-  .container { display: flex; flex-wrap: wrap; gap: 20px; flex: 1; }
-  .terminal { flex: 1 1 calc(50% - 20px); background-color: #010409; border: 1px solid #30363d; border-radius: 6px; display: flex; flex-direction: column; min-height: 300px; max-height: 45vh; }
-  .terminal-header { background-color: #161b22; padding: 10px; text-align: center; font-weight: bold; border-bottom: 1px solid #30363d; color: #8b949e; font-size: 0.9rem; }
-  .terminal-body { flex: 1; padding: 10px; overflow-y: auto; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+  /* --- ÁREAS DE CONTEÚDO --- */
+  .conteudo { display: none; padding: 15px; flex: 1; flex-direction: column; }
   
-  .log-linha { margin-bottom: 4px; border-bottom: 1px dashed #30363d; padding-bottom: 4px; }
-  .tag-info { color: #3fb950; font-weight: bold; }
-  .tag-erro { color: #f85149; font-weight: bold; }
-  .tag-data { color: #8b949e; }
-  .tag-alerta { color: #d29922; font-weight: bold; }
+  /* Seção Logs */
+  .header-logs { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .btn-reiniciar { background-color: #238636; color: #ffffff; border: 1px solid rgba(240, 246, 252, 0.1); padding: 8px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+  .container-grids { display: flex; flex-wrap: wrap; gap: 20px; flex: 1; }
+  .terminal-box { flex: 1 1 calc(50% - 20px); background-color: #010409; border: 1px solid #30363d; border-radius: 6px; display: flex; flex-direction: column; min-height: 250px; max-height: 40vh; }
+  .terminal-header { background-color: #161b22; padding: 8px; text-align: center; font-weight: bold; border-bottom: 1px solid #30363d; font-size: 0.85rem; }
+  .terminal-body { flex: 1; padding: 10px; overflow-y: auto; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word; }
+
+  /* Seção Terminal Remoto */
+  .terminal-controls { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .terminal-controls select, .terminal-controls button, .terminal-controls input { padding: 8px; background-color: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 4px; font-family: inherit; }
+  .btn-start-shell { background-color: #1f6feb; border-color: #1f6feb; color: white; cursor: pointer; }
+  .btn-stop-shell { background-color: #da3633; border-color: #da3633; color: white; cursor: pointer; display: none; }
+  #shell-output { flex: 1; background-color: #010409; border: 1px solid #30363d; padding: 10px; overflow-y: auto; white-space: pre-wrap; font-size: 0.85rem; min-height: 300px; margin-bottom: 10px; }
+  .input-comando-wrapper { display: flex; gap: 10px; }
+  #input-comando { flex: 1; }
 
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background-color: #6e7681; border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
-  ::-webkit-scrollbar-thumb:hover { background-color: #8b949e; }
+  ::-webkit-scrollbar-thumb { background-color: #6e7681; border-radius: 10px; }
 
-  @media (max-width: 900px) { .terminal { flex: 1 1 100%; max-height: 350px; } .header-container { flex-direction: column; justify-content: center; text-align: center; } }
+  @media (max-width: 768px) {
+    .menu-links { flex-direction: column; position: absolute; top: 50px; right: 20px; background-color: #161b22; padding: 10px; border: 1px solid #30363d; border-radius: 6px; }
+    .terminal-box { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
@@ -54,113 +64,167 @@
   <div id="tela-login">
       <div class="login-box">
           <h2>🔐 Acesso Restrito</h2>
-          <div class="input-group">
-              <label>Usuário</label>
-              <input type="text" id="usuario" placeholder="Digite o usuário">
-          </div>
-          <div class="input-group">
-              <label>Senha</label>
-              <input type="password" id="senha" placeholder="Digite a senha">
-          </div>
-          <div class="lembrar-mim">
-              <input type="checkbox" id="lembrar" checked>
-              <label for="lembrar">Lembrar de mim</label>
-          </div>
+          <div class="input-group"><label>Usuário</label><input type="text" id="usuario"></div>
+          <div class="input-group"><label>Senha</label><input type="password" id="senha"></div>
           <button class="btn-entrar" onclick="fazerLogin()">ENTRAR</button>
-          <div id="msg-erro">Usuário ou senha incorretos!</div>
+          <div id="msg-erro">Credenciais incorretas!</div>
       </div>
   </div>
 
-  <div id="tela-dashboard">
-      <div class="header-container">
-          <h1>🌐 Centro de Comando</h1>
-          <div style="display: flex; gap: 10px;">
-              <button class="btn-reiniciar" onclick="enviarComandoReiniciar()">🚀 REINICIAR DEPLOY</button>
-              <button class="btn-sair" onclick="fazerLogoff()">Sair</button>
-          </div>
+  <div id="navbar">
+      <div class="nav-title">🌐 Ventura CMD</div>
+      <button class="hamburger" onclick="toggleMenu()">☰</button>
+      <div class="menu-links" id="menu-links">
+          <button class="nav-btn" onclick="mostrarSecao('logs')">Monitor de Logs</button>
+          <button class="nav-btn" onclick="mostrarSecao('terminal')">Terminal Remoto</button>
+          <button class="nav-btn danger" onclick="fazerLogoff()">Sair</button>
       </div>
+  </div>
 
-      <div class="container">
-        <div class="terminal"><div class="terminal-header">🤖 Bot WhatsApp (Node)</div><div class="terminal-body" id="log-node"></div></div>
-        <div class="terminal"><div class="terminal-header">🐍 API Datasheet (Python)</div><div class="terminal-body" id="log-python"></div></div>
-        <div class="terminal"><div class="terminal-header">⚙️ HSE (.NET)</div><div class="terminal-body" id="log-hse"></div></div>
-        <div class="terminal"><div class="terminal-header">🚨 Deploy & Webhook</div><div class="terminal-body" id="log-deploy"></div></div>
+  <div id="secao-logs" class="conteudo">
+      <div class="header-logs">
+          <h2>Monitoramento em Tempo Real</h2>
+          <button class="btn-reiniciar" onclick="enviarComandoReiniciar()">🚀 REINICIAR DEPLOY</button>
+      </div>
+      <div class="container-grids">
+        <div class="terminal-box"><div class="terminal-header">🤖 Bot WhatsApp</div><div class="terminal-body" id="log-node"></div></div>
+        <div class="terminal-box"><div class="terminal-header">🐍 API Datasheet</div><div class="terminal-body" id="log-python"></div></div>
+        <div class="terminal-box"><div class="terminal-header">⚙️ HSE (.NET)</div><div class="terminal-body" id="log-hse"></div></div>
+        <div class="terminal-box"><div class="terminal-header">🚨 Deploy Webhook</div><div class="terminal-body" id="log-deploy"></div></div>
+      </div>
+  </div>
+
+  <div id="secao-terminal" class="conteudo">
+      <h2>Prompt de Comando Remoto</h2>
+      <div class="terminal-controls">
+          <select id="tipo-shell">
+              <option value="cmd">CMD (Prompt de Comando)</option>
+              <option value="powershell">PowerShell</option>
+          </select>
+          <button class="btn-start-shell" id="btn-start" onclick="iniciarShell()">Iniciar Sessão</button>
+          <button class="btn-stop-shell" id="btn-stop" onclick="pararShell()">Encerrar Sessão</button>
+      </div>
+      
+      <div id="shell-output">Aguardando conexão com o servidor...</div>
+      
+      <div class="input-comando-wrapper">
+          <input type="text" id="input-comando" placeholder="Digite um comando e aperte ENTER..." onkeypress="verificarEnter(event)" disabled>
+          <button class="nav-btn" onclick="enviarComandoShell()" id="btn-enviar" disabled>Enviar</button>
       </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
       const socket = io();
-      const telaLogin = document.getElementById('tela-login');
-      const telaDashboard = document.getElementById('tela-dashboard');
-      const msgErro = document.getElementById('msg-erro');
 
-      // Tenta logar automaticamente se tiver token salvo
+      // NAVEGAÇÃO
+      function toggleMenu() { document.getElementById('menu-links').classList.toggle('ativo'); }
+      function mostrarSecao(secao) {
+          document.getElementById('secao-logs').style.display = secao === 'logs' ? 'flex' : 'none';
+          document.getElementById('secao-terminal').style.display = secao === 'terminal' ? 'flex' : 'none';
+          document.getElementById('menu-links').classList.remove('ativo');
+      }
+
+      // LOGIN E LOGOFF
       window.onload = () => {
-          const tokenSalvo = localStorage.getItem('ventura_token');
-          if (tokenSalvo) {
-              socket.emit('validar_token_solicitado', { token: tokenSalvo });
-          }
+          const t = localStorage.getItem('ventura_token');
+          if (t) socket.emit('validar_token_solicitado', { token: t });
       };
 
       function fazerLogin() {
           const u = document.getElementById('usuario').value;
           const s = document.getElementById('senha').value;
-          msgErro.style.display = 'none';
           socket.emit('login_solicitado', { usuario: u, senha: s });
       }
 
       function fazerLogoff() {
           localStorage.removeItem('ventura_token');
-          location.reload(); // Recarrega a página para voltar pro login limpo
+          location.reload();
       }
 
-      // RESPOSTAS DO SERVIDOR PARA LOGIN
       socket.on('login_sucesso', (dados) => {
-          if (document.getElementById('lembrar').checked && dados.token) {
-              localStorage.setItem('ventura_token', dados.token);
-          }
-          telaLogin.style.display = 'none';
-          telaDashboard.style.display = 'flex';
-          document.title = "Painel - Online";
+          if (dados.token) localStorage.setItem('ventura_token', dados.token);
+          document.getElementById('tela-login').style.display = 'none';
+          document.getElementById('navbar').style.display = 'flex';
+          mostrarSecao('logs');
       });
 
       socket.on('login_erro', (dados) => {
-          msgErro.innerText = dados.mensagem || "Erro na autenticação";
-          msgErro.style.display = 'block';
-          localStorage.removeItem('ventura_token'); // Limpa token falso/vencido se houver
-          telaLogin.style.display = 'flex';
-          telaDashboard.style.display = 'none';
+          document.getElementById('msg-erro').style.display = 'block';
+          localStorage.removeItem('ventura_token');
       });
 
       // RENDERIZAÇÃO DE LOGS (Inalterado)
       function adicionarLog(containerId, texto) {
           const container = document.getElementById(containerId);
-          const divLinha = document.createElement('div');
-          divLinha.className = 'log-linha';
-
-          let htmlTexto = texto
-              .replace(/\[(.*?)\]/, '<span class="tag-data">[$1]</span>')
-              .replace(/INFO:/, '<span class="tag-info">INFO:</span>')
-              .replace(/ERRO:/, '<span class="tag-erro">ERRO:</span>')
-              .replace(/🚨|🚀|🧹/g, '<span class="tag-alerta">$&</span>'); 
-
-          divLinha.innerHTML = htmlTexto;
-          container.appendChild(divLinha);
+          const div = document.createElement('div');
+          div.style.borderBottom = "1px dashed #30363d";
+          div.innerText = texto; 
+          container.appendChild(div);
           container.scrollTop = container.scrollHeight;
       }
 
-      socket.on('novo_log_node', (linha) => adicionarLog('log-node', linha));
-      socket.on('novo_log_python', (linha) => adicionarLog('log-python', linha));
-      socket.on('novo_console-log', (linha) => adicionarLog('log-hse', linha));
-      socket.on('novo_log_deploy', (linha) => adicionarLog('log-deploy', linha));
+      socket.on('novo_log_node', (l) => adicionarLog('log-node', l));
+      socket.on('novo_log_python', (l) => adicionarLog('log-python', l));
+      socket.on('novo_console-log', (l) => adicionarLog('log-hse', l));
+      socket.on('novo_log_deploy', (l) => adicionarLog('log-deploy', l));
 
       function enviarComandoReiniciar() {
-          if(confirm("Tem certeza que deseja reiniciar todo o ambiente de produção?")) {
-              socket.emit('solicitar_reiniciar', { chave: 'Ventura_Logs_Secreto_2026' });
-              alert("Comando de reinício enviado!");
+          if(confirm("Reiniciar tudo?")) {
+              socket.emit('solicitar_reiniciar', { chave: 'cadaallan' }); // <--- SENHA AQUI
+              alert("Comando enviado!");
           }
       }
+
+      // ==========================================
+      // LÓGICA DO TERMINAL REMOTO
+      // ==========================================
+      const outShell = document.getElementById('shell-output');
+      const inputShell = document.getElementById('input-comando');
+      const btnStart = document.getElementById('btn-start');
+      const btnStop = document.getElementById('btn-stop');
+      const btnEnviar = document.getElementById('btn-enviar');
+
+      function iniciarShell() {
+          const tipo = document.getElementById('tipo-shell').value;
+          socket.emit('iniciar_shell', { tipo: tipo });
+          outShell.innerText = `Iniciando ${tipo.toUpperCase()}...\n`;
+          btnStart.style.display = 'none';
+          btnStop.style.display = 'inline-block';
+          inputShell.disabled = false;
+          btnEnviar.disabled = false;
+          inputShell.focus();
+      }
+
+      function pararShell() {
+          socket.emit('parar_shell');
+          btnStart.style.display = 'inline-block';
+          btnStop.style.display = 'none';
+          inputShell.disabled = true;
+          btnEnviar.disabled = true;
+      }
+
+      function enviarComandoShell() {
+          const cmd = inputShell.value;
+          if(cmd.trim() !== '') {
+              socket.emit('comando_shell', { comando: cmd });
+              inputShell.value = '';
+          }
+      }
+
+      function verificarEnter(e) {
+          if (e.key === 'Enter') enviarComandoShell();
+      }
+
+      socket.on('shell_output', (texto) => {
+          outShell.innerText += texto;
+          outShell.scrollTop = outShell.scrollHeight;
+      });
+
+      socket.on('shell_fechado', () => {
+          outShell.innerText += "\n[Sessão Encerrada pelo Servidor]\n";
+          pararShell();
+      });
   </script>
 </body>
 </html>

@@ -9,6 +9,7 @@ const io = new Server(server);
 
 app.use(express.json()); 
 
+// ⚠️ MANTENHA A SUA SENHA AQUI!
 const CHAVE_SECRETA = "cadaallan"; 
 
 const historico = {
@@ -17,7 +18,6 @@ const historico = {
 
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// Quando o agente manda as linhas de log...
 app.post('/receber-log', (req, res) => {
     const { chave, terminal, linha } = req.body;
     if (chave !== CHAVE_SECRETA) return res.status(403).json({ erro: "Acesso Negado" });
@@ -26,53 +26,38 @@ app.post('/receber-log', (req, res) => {
         historico[terminal].push(linha);
         if (historico[terminal].length > 50) historico[terminal].shift(); 
     }
-
-    // A MÁGICA DE SEGURANÇA: Só manda o log para quem está na sala 'logados'
     io.to('logados').emit(terminal, linha);
     res.status(200).json({ status: "ok" });
 });
 
 io.on('connection', (socket) => {
-    let ipCliente = socket.handshake.address.replace('::ffff:', '');
-    console.log(`💻 Conexão estabelecida: ${ipCliente}`);
-
-    // 1. Navegador pediu para logar (com usuário e senha)
+    // --- AUTENTICAÇÃO ---
     socket.on('login_solicitado', (dados) => {
-        console.log("🔒 Pedido de login recebido. Consultando Agente Local...");
-        // O servidor grita para todos os Agentes conectados validarem as credenciais
         io.emit('agente_validar_login', { browserId: socket.id, usuario: dados.usuario, senha: dados.senha });
     });
 
-    // 2. Navegador pediu para logar via "Lembrar de Mim" (com token salvo)
     socket.on('validar_token_solicitado', (dados) => {
         io.emit('agente_validar_token', { browserId: socket.id, token: dados.token });
     });
 
-    // 3. O Agente Local respondeu se a SENHA está correta
     socket.on('agente_resposta_login', (dados) => {
-        // Bloqueia hackers tentando fingir que são o Agente
         if (dados.chave !== CHAVE_SECRETA) return; 
-
         const clientSocket = io.sockets.sockets.get(dados.browserId);
         if (clientSocket) {
             if (dados.sucesso) {
-                clientSocket.join('logados'); // Coloca na sala VIP
+                clientSocket.join('logados'); 
                 clientSocket.emit('login_sucesso', { token: dados.token });
-                
-                // Despeja o histórico na tela de quem acabou de entrar
                 ['novo_log_node', 'novo_log_python', 'novo_console-log', 'novo_log_deploy'].forEach(term => {
                     historico[term].forEach(linha => clientSocket.emit(term, linha));
                 });
             } else {
-                clientSocket.emit('login_erro', { mensagem: 'Usuário ou senha inválidos' });
+                clientSocket.emit('login_erro');
             }
         }
     });
 
-    // 4. O Agente Local respondeu se o TOKEN é válido
     socket.on('agente_resposta_token', (dados) => {
         if (dados.chave !== CHAVE_SECRETA) return; 
-
         const clientSocket = io.sockets.sockets.get(dados.browserId);
         if (clientSocket) {
             if (dados.sucesso) {
@@ -82,16 +67,56 @@ io.on('connection', (socket) => {
                     historico[term].forEach(linha => clientSocket.emit(term, linha));
                 });
             } else {
-                clientSocket.emit('login_erro', { mensagem: 'Sessão expirada. Faça login novamente.' });
+                clientSocket.emit('login_erro');
             }
         }
     });
 
-    // REINICIAR: Só aceita se quem clicou também mandar a senha de segurança
     socket.on('solicitar_reiniciar', (dados) => {
         if (dados.chave === CHAVE_SECRETA) {
-            console.log("⚠️ Comando REMOTO acionado! Avisando o Windows Server...");
             io.emit('comando_reiniciar'); 
+        }
+    });
+
+    // =================================================================
+    // ROTAS DO TERMINAL REMOTO (Novo)
+    // =================================================================
+    
+    // O Cliente Web pediu para abrir um CMD
+    socket.on('iniciar_shell', (dados) => {
+        // Segurança: Só aceita se estiver logado
+        if (socket.rooms.has('logados')) {
+            io.emit('agente_iniciar_shell', { browserId: socket.id, tipo: dados.tipo });
+        }
+    });
+
+    // O Cliente Web mandou um comando (ex: "dir", "ping", "cd")
+    socket.on('comando_shell', (dados) => {
+        if (socket.rooms.has('logados')) {
+            io.emit('agente_comando_shell', { comando: dados.comando });
+        }
+    });
+
+    // O Cliente Web pediu para fechar o CMD
+    socket.on('parar_shell', () => {
+        if (socket.rooms.has('logados')) {
+            io.emit('agente_parar_shell');
+        }
+    });
+
+    // O Agente Local devolveu o texto do CMD, manda de volta para o cliente
+    socket.on('agente_shell_output', (dados) => {
+        if (dados.chave === CHAVE_SECRETA) {
+            const clientSocket = io.sockets.sockets.get(dados.browserId);
+            if (clientSocket) clientSocket.emit('shell_output', dados.texto);
+        }
+    });
+
+    // O Agente Local avisou que a tela preta fechou
+    socket.on('agente_shell_fechado', (dados) => {
+        if (dados.chave === CHAVE_SECRETA) {
+            const clientSocket = io.sockets.sockets.get(dados.browserId);
+            if (clientSocket) clientSocket.emit('shell_fechado');
         }
     });
 });
