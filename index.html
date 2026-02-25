@@ -78,6 +78,7 @@
           <button class="nav-btn" onclick="mostrarSecao('logs')">Monitor de Logs</button>
           <button class="nav-btn" onclick="mostrarSecao('terminal')">Terminal Remoto</button>
           <button class="nav-btn danger" onclick="fazerLogoff()">Sair</button>
+          <button class="nav-btn" onclick="mostrarSecao('sessoes')">Sessões Ativas</button>
       </div>
   </div>
 
@@ -112,6 +113,23 @@
           <button class="nav-btn" onclick="enviarComandoShell()" id="btn-enviar" disabled>Enviar</button>
       </div>
   </div>
+  <div id="secao-sessoes" class="conteudo">
+    <h2>👥 Usuários Conectados</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; background-color: #161b22; border: 1px solid #30363d;">
+            <thead>
+                <tr style="background-color: #0d1117; color: #58a6ff;">
+                    <th style="padding: 10px; border: 1px solid #30363d;">IP</th>
+                    <th style="padding: 10px; border: 1px solid #30363d;">Entrada</th>
+                    <th style="padding: 10px; border: 1px solid #30363d;">Status</th>
+                    <th style="padding: 10px; border: 1px solid #30363d;">Ação</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-sessoes">
+                </tbody>
+        </table>
+    </div>
+</div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -120,10 +138,41 @@
       // NAVEGAÇÃO
       function toggleMenu() { document.getElementById('menu-links').classList.toggle('ativo'); }
       function mostrarSecao(secao) {
-          document.getElementById('secao-logs').style.display = secao === 'logs' ? 'flex' : 'none';
-          document.getElementById('secao-terminal').style.display = secao === 'terminal' ? 'flex' : 'none';
-          document.getElementById('menu-links').classList.remove('ativo');
-      }
+        document.getElementById('secao-logs').style.display = secao === 'logs' ? 'flex' : 'none';
+        document.getElementById('secao-terminal').style.display = secao === 'terminal' ? 'flex' : 'none';
+        document.getElementById('secao-sessoes').style.display = secao === 'sessoes' ? 'flex' : 'none';
+        if(secao === 'sessoes') socket.emit('pedir_lista_sessoes');
+        document.getElementById('menu-links').classList.remove('ativo');
+    }
+
+    // Escuta a lista de sessões enviada pelo Agente
+    socket.on('lista_sessoes', (sessoes) => {
+        const corpo = document.getElementById('tabela-sessoes');
+        corpo.innerHTML = '';
+        sessoes.forEach(s => {
+            corpo.innerHTML += `
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #30363d;">${s.ip}</td>
+                    <td style="padding: 10px; border: 1px solid #30363d;">${s.hora}</td>
+                    <td style="padding: 10px; border: 1px solid #30363d; color: #3fb950;">Ativo</td>
+                    <td style="padding: 10px; border: 1px solid #30363d;">
+                        <button onclick="derrubarSessao('${s.socketId}')" style="background-color: #da3633; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Derrubar</button>
+                    </td>
+                </tr>`;
+        });
+    });
+
+    function derrubarSessao(id) {
+        if(confirm("Deseja desconectar este usuário?")) {
+            socket.emit('solicitar_expulsao', { targetSocketId: id });
+        }
+    }
+
+    // Se o servidor te expulsar, ele limpa tudo
+    socket.on('voce_foi_expulso', () => {
+        alert("Sua sessão foi encerrada por um administrador.");
+        fazerLogoff();
+    });
 
       // LOGIN E LOGOFF
       window.onload = () => {

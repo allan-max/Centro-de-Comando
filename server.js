@@ -29,15 +29,55 @@ app.post('/receber-log', (req, res) => {
     io.to('logados').emit(terminal, linha);
     res.status(200).json({ status: "ok" });
 });
+socket.on('pedir_lista_sessoes', () => {
+    io.emit('agente_pedir_lista'); // Pede para o Agente Local a lista oficial
+});
+
+socket.on('agente_envia_lista', (dados) => {
+    if (dados.chave === CHAVE_SECRETA) {
+        io.to('logados').emit('lista_sessoes', dados.lista);
+    }
+});
+
+socket.on('solicitar_expulsao', (dados) => {
+    if (socket.rooms.has('logados')) {
+        io.emit('agente_expulsar_id', { socketId: dados.targetSocketId });
+    }
+});
+
+socket.on('agente_confirma_expulsao', (dados) => {
+    if (dados.chave === CHAVE_SECRETA) {
+        const target = io.sockets.sockets.get(dados.socketId);
+        if (target) {
+            target.emit('voce_foi_expulso');
+            target.leave('logados');
+            target.disconnect();
+        }
+    }
+});
 
 io.on('connection', (socket) => {
-    // --- AUTENTICAÇÃO ---
+    // ==========================================
+    // NOVA FUNÇÃO: PEGAR O IP REAL DO CELULAR/PC
+    // ==========================================
+    function pegarIP(socket) {
+        let ip = socket.handshake.headers['x-forwarded-for'] || socket.handshake.address;
+        // Pega apenas o primeiro IP e remove formatações estranhas (::ffff:)
+        return ip.split(',')[0].trim().replace('::ffff:', '');
+    }
+
+    // 1. Navegador pediu para logar (com usuário e senha)
     socket.on('login_solicitado', (dados) => {
-        io.emit('agente_validar_login', { browserId: socket.id, usuario: dados.usuario, senha: dados.senha });
+        const ipReal = pegarIP(socket);
+        console.log(`🔒 Pedido de login do IP: ${ipReal}`);
+        // Agora ele manda o IP junto para o Windows Server anotar!
+        io.emit('agente_validar_login', { browserId: socket.id, usuario: dados.usuario, senha: dados.senha, ip: ipReal });
     });
 
+    // 2. Navegador pediu para logar via "Lembrar de Mim"
     socket.on('validar_token_solicitado', (dados) => {
-        io.emit('agente_validar_token', { browserId: socket.id, token: dados.token });
+        const ipReal = pegarIP(socket);
+        io.emit('agente_validar_token', { browserId: socket.id, token: dados.token, ip: ipReal });
     });
 
     socket.on('agente_resposta_login', (dados) => {
@@ -119,6 +159,10 @@ io.on('connection', (socket) => {
         if (dados.chave === CHAVE_SECRETA) {
             io.to(dados.browserId).emit('shell_fechado');
         }
+    });
+    socket.on('disconnect', () => {
+        // Quando alguém fechar a janela, avisa o Windows Server para limpar a tabela
+        io.emit('browser_desconectado', { socketId: socket.id });
     });
 }); // Fim do io.on('connection')
 
