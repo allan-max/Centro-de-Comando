@@ -107,19 +107,18 @@ io.on('connection', (socket) => {
     // O Agente Local devolveu o texto do CMD, manda de volta para o cliente
     socket.on('agente_shell_output', (dados) => {
         if (dados.chave === CHAVE_SECRETA) {
-            const clientSocket = io.sockets.sockets.get(dados.browserId);
-            if (clientSocket) clientSocket.emit('shell_output', dados.texto);
+            // Jeito 100% infalível de enviar para a tela exata de quem pediu:
+            io.to(dados.browserId).emit('shell_output', dados.texto);
         }
     });
 
     // O Agente Local avisou que a tela preta fechou
     socket.on('agente_shell_fechado', (dados) => {
         if (dados.chave === CHAVE_SECRETA) {
-            const clientSocket = io.sockets.sockets.get(dados.browserId);
-            if (clientSocket) clientSocket.emit('shell_fechado');
+            io.to(dados.browserId).emit('shell_fechado');
         }
     });
-});
+}); // Fim do io.on('connection')
 
 const PORTA = process.env.PORT || 3000;
 server.listen(PORTA, () => console.log(`🚀 Nuvem online na porta ${PORTA}`));
